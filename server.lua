@@ -57,6 +57,10 @@ function startDeliveryMission(source)
     -- Randomly select a drop-off location
     local dropoff = {x = 2023.3757324219, y = 4972.2622070313, z = 41.225715637207}
     TriggerClientEvent('kotr:markDropoff', source, dropoff, remainingTime)
+    TriggerClientEvent('kotr:updateParticipantsCount', -1, #participants)
+    RegisterNetEvent('kotr:updateParticipantsCount')
+
+
 
     table.insert(participants, source)
 
