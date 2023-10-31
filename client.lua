@@ -1,10 +1,11 @@
-local startPoint = {x = 1184.9949951172, y = -3244.7641601563, z = 6.0291090011597}
+local startPoint = {x = 2055.9204101563, y = 4996.7216796875, z = 40.669498443604}
 local deliveryStartTime = nil
 local playerBlips = {}
 local isInDeliveryJob = false
 local startCheckpoint = nil
 local deliveryCheckpoint = nil
 local remainingTime = 15 * 60  -- 15 minutes in seconds
+local availableTime = remainingTime
 
 local allowedVehicles = {
     "phantom",
@@ -50,20 +51,22 @@ function displayTimer()
 end
 
 function displayJobTime(remainingTime)
-    local minutes = math.floor(remainingTime / 60)
-    local seconds = remainingTime % 60
-
-    SetTextFont(0)
-    SetTextProportional(1)
-    SetTextScale(0.0, 0.5)
-    SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
-    SetTextDropshadow(0, 0, 0, 0, 255)
-    SetTextEdge(1, 0, 0, 0, 255)
-    SetTextDropShadow()
-    SetTextOutline()
-    SetTextEntry("STRING")
-    AddTextComponentString(string.format("Available Time for Job: %02d:%02d", minutes, seconds))
-    DrawText(0.4, 0.05)  -- Adjust these values to change the position of the timer on the screen
+	if remainingTime then
+		local minutes = math.floor(remainingTime / 60)
+		local seconds = remainingTime % 60
+	
+		SetTextFont(0)
+		SetTextProportional(1)
+		SetTextScale(0.0, 0.5)
+		SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
+		SetTextDropshadow(0, 0, 0, 0, 255)
+		SetTextEdge(1, 0, 0, 0, 255)
+		SetTextDropShadow()
+		SetTextOutline()
+		SetTextEntry("STRING")
+		AddTextComponentString(string.format("Available Time for Job: %02d:%02d", minutes, seconds))
+		DrawText(0.4, 0.05)  -- Adjust these values to change the position of the timer on the screen
+	end
 end
 
 RegisterNetEvent('kotr:markDropoff')
@@ -102,12 +105,33 @@ Citizen.CreateThread(function()
         local playerPos = GetEntityCoords(PlayerPedId())
         local distance = Vdist(playerPos.x, playerPos.y, playerPos.z, startPoint.x, startPoint.y, startPoint.z)
 
-        if distance < 5.0 and not isInDeliveryJob then
-            TriggerServerEvent('kotr:requestRemainingTime')
+		if distance < 5.0 and not isInDeliveryJob then
+			DisplayHelpText("Press ~INPUT_CONTEXT~ to start the King of the Road job.")  -- This displays a hint to press E
+
+			if IsControlJustPressed(0, 38) then  -- 38 is the key code for the "E" key (INPUT_CONTEXT)
+				TriggerServerEvent('kotr:requestRemainingTime')
+				TriggerServerEvent('kotr:startDeliveryJob', source)
+				print(isInDeliveryJob)
+			end
+
+			if dropoff then
+				local playerPos = GetEntityCoords(PlayerPedId())
+				local distanceToDropoff = Vdist(playerPos.x, playerPos.y, playerPos.z, dropoff.x, dropoff.y, dropoff.z)
+				
+				if distanceToDropoff < 5.0 and isInDeliveryJob then
+					TriggerServerEvent('kotr:completeDelivery', source)
+				end
+			end
+
+            displayAvailableTime = true
+        else
+            displayAvailableTime = false
         end
 
         if isInDeliveryJob then
             displayTimer()
+        elseif displayAvailableTime then
+            displayJobTime(availableTime)
         end
     end
 end)
@@ -119,7 +143,7 @@ end)
 
 RegisterNetEvent('kotr:showRemainingTime')
 AddEventHandler('kotr:showRemainingTime', function(timeLeft)
-    displayJobTime(timeLeft)
+    availableTime = timeLeft
 end)
 
 function ShowNotification(text)

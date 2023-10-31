@@ -76,10 +76,18 @@ function completeDelivery(source, position, isLate)
     for i, playerId in ipairs(participants) do
         if playerId == source then
             table.remove(participants, i)
+			print("gata treaba sefu")
             break
         end
     end
 end
+
+RegisterNetEvent('kotr:startDeliveryJob')
+AddEventHandler('kotr:startDeliveryJob', function()
+    isInDeliveryJob = true
+	startDeliveryMission(source)
+    print("Job started:", isInDeliveryJob)  -- This should print "Job started: true"
+end)
 
 RegisterNetEvent('kotr:requestDelivery')
 AddEventHandler('kotr:requestDelivery', function()
