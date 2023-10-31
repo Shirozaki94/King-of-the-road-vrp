@@ -8,7 +8,6 @@ local remainingTime = 15 * 60  -- 15 minutes in seconds
 local availableTime = remainingTime
 local participantsCount = 0
 
-
 local allowedVehicles = {
     "phantom",
     "packer",
@@ -32,13 +31,12 @@ end
 
 function setupStartCheckpoint()
     local startBlip = AddBlipForCoord(startPoint.x, startPoint.y, startPoint.z)
-SetBlipSprite(startBlip, 1)  -- Change the number for a different icon
-SetBlipColour(startBlip, 2)  -- Change the number for a different color
-SetBlipAsShortRange(startBlip, true)
-BeginTextCommandSetBlipName("STRING")
-AddTextComponentString("Delivery Start")
-EndTextCommandSetBlipName(startBlip)
-
+    SetBlipSprite(startBlip, 1)  -- Change the number for a different icon
+    SetBlipColour(startBlip, 2)  -- Change the number for a different color
+    SetBlipAsShortRange(startBlip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("Delivery Start")
+    EndTextCommandSetBlipName(startBlip)
 
     startCheckpoint = CreateCheckpoint(1, startPoint.x, startPoint.y, startPoint.z, 0.0, 0.0, 0.0, 2.0, 0, 255, 0, 255, 0)
     SetCheckpointCylinderHeight(startCheckpoint, 3.0, 3.0, 2.0)
@@ -62,33 +60,49 @@ function displayTimer()
 end
 
 function displayJobTime(remainingTime)
-	if remainingTime then
-		local minutes = math.floor(remainingTime / 60)
-		local seconds = remainingTime % 60
-	
-		SetTextFont(0)
-		SetTextProportional(1)
-		SetTextScale(0.0, 0.5)
-		SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
-		SetTextDropshadow(0, 0, 0, 0, 255)
-		SetTextEdge(1, 0, 0, 0, 255)
-		SetTextDropShadow()
-		SetTextOutline()
-		SetTextEntry("STRING")
-		AddTextComponentString(string.format("Available Time for Job: %02d:%02d", minutes, seconds))
-		DrawText(0.4, 0.05)  -- Adjust these values to change the position of the timer on the screen
-	end
+    if remainingTime then
+        local minutes = math.floor(remainingTime / 60)
+        local seconds = remainingTime % 60
+
+        SetTextFont(0)
+        SetTextProportional(1)
+        SetTextScale(0.0, 0.5)
+        SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
+        SetTextDropshadow(0, 0, 0, 0, 255)
+        SetTextEdge(1, 0, 0, 0, 255)
+        SetTextDropShadow()
+        SetTextOutline()
+        SetTextEntry("STRING")
+        AddTextComponentString(string.format("Available Time for Job: %02d:%02d", minutes, seconds))
+        DrawText(0.4, 0.05)  -- Adjust these values to change the position of the timer on the screen
+    end
+end
+
+function displayParticipantsCount()
+    SetTextFont(0)
+    SetTextProportional(1)
+    SetTextScale(0.0, 0.5)
+    SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
+    SetTextDropshadow(0, 0, 0, 0, 255)
+    SetTextEdge(1, 0, 0, 0, 255)
+    SetTextDropShadow()
+    SetTextOutline()
+    SetTextEntry("STRING")
+    AddTextComponentString(string.format("Participants: %d", participantsCount))
+    DrawText(0.4, 0.1)  -- Adjust these values to change the position on the screen
 end
 
 RegisterNetEvent('kotr:markDropoff')
-local endBlip = AddBlipForCoord(dropoff.x, dropoff.y, dropoff.z)
-SetBlipSprite(endBlip, 1)  -- Change the number for a different icon
-SetBlipColour(endBlip, 1)  -- Change the number for a different color
-SetBlipAsShortRange(endBlip, true)
-BeginTextCommandSetBlipName("STRING")
-AddTextComponentString("Delivery End")
-EndTextCommandSetBlipName(endBlip)
 AddEventHandler('kotr:markDropoff', function(dropoff, timeLeft)
+    -- Blip for the end location
+    local endBlip = AddBlipForCoord(dropoff.x, dropoff.y, dropoff.z)
+    SetBlipSprite(endBlip, 1)  -- Change the number for a different icon
+    SetBlipColour(endBlip, 1)  -- Change the number for a different color
+    SetBlipAsShortRange(endBlip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("Delivery End")
+    EndTextCommandSetBlipName(endBlip)
+
     DeleteCheckpoint(startCheckpoint)
 
     deliveryCheckpoint = CreateCheckpoint(3, dropoff.x, dropoff.y, dropoff.z, 0.0, 0.0, 0.0, 2.0, 255, 0, 0, 255, 0)
@@ -123,23 +137,23 @@ Citizen.CreateThread(function()
         local playerPos = GetEntityCoords(PlayerPedId())
         local distance = Vdist(playerPos.x, playerPos.y, playerPos.z, startPoint.x, startPoint.y, startPoint.z)
 
-		if distance < 5.0 and not isInDeliveryJob then
-			DisplayHelpText("Press ~INPUT_CONTEXT~ to start the King of the Road job.")  -- This displays a hint to press E
+        if distance < 5.0 and not isInDeliveryJob then
+            DisplayHelpText("Press ~INPUT_CONTEXT~ to start the King of the Road job.")  -- This displays a hint to press E
 
-			if IsControlJustPressed(0, 38) then  -- 38 is the key code for the "E" key (INPUT_CONTEXT)
-				TriggerServerEvent('kotr:requestRemainingTime')
-				TriggerServerEvent('kotr:startDeliveryJob', source)
-				print(isInDeliveryJob)
-			end
+            if IsControlJustPressed(0, 38) then  -- 38 is the key code for the "E" key (INPUT_CONTEXT)
+                TriggerServerEvent('kotr:requestRemainingTime')
+                TriggerServerEvent('kotr:startDeliveryJob', source)
+                print(isInDeliveryJob)
+            end
 
-			if dropoff then
-				local playerPos = GetEntityCoords(PlayerPedId())
-				local distanceToDropoff = Vdist(playerPos.x, playerPos.y, playerPos.z, dropoff.x, dropoff.y, dropoff.z)
-				
-				if distanceToDropoff < 5.0 and isInDeliveryJob then
-					TriggerServerEvent('kotr:completeDelivery', source)
-				end
-			end
+            if dropoff then
+                local playerPos = GetEntityCoords(PlayerPedId())
+                local distanceToDropoff = Vdist(playerPos.x, playerPos.y, playerPos.z, dropoff.x, dropoff.y, dropoff.z)
+                
+                if distanceToDropoff < 5.0 and isInDeliveryJob then
+                    TriggerServerEvent('kotr:completeDelivery', source)
+                end
+            end
 
             displayAvailableTime = true
         else
@@ -165,6 +179,11 @@ AddEventHandler('kotr:showRemainingTime', function(timeLeft)
     availableTime = timeLeft
 end)
 
+RegisterNetEvent('kotr:updateParticipantsCount')
+AddEventHandler('kotr:updateParticipantsCount', function(count)
+    participantsCount = count
+end)
+
 function ShowNotification(text)
     SetNotificationTextEntry("STRING")
     AddTextComponentString(text)
@@ -176,22 +195,3 @@ function DisplayHelpText(text)
     AddTextComponentSubstringPlayerName(text)
     EndTextCommandDisplayHelp(0, false, true, -1)
 end
-
-function displayParticipantsCount()
-    SetTextFont(0)
-    SetTextProportional(1)
-    SetTextScale(0.0, 0.5)
-    SetTextColour(255, 255, 255, 255)  -- RGB + Alpha
-    SetTextDropshadow(0, 0, 0, 0, 255)
-    SetTextEdge(1, 0, 0, 0, 255)
-    SetTextDropShadow()
-    SetTextOutline()
-    SetTextEntry("STRING")
-    AddTextComponentString(string.format("Participants: %d", participantsCount))
-    DrawText(0.4, 0.1)  -- Adjust these values to change the position on the screen
-end
-
-RegisterNetEvent('kotr:updateParticipantsCount')
-AddEventHandler('kotr:updateParticipantsCount', function(count)
-    participantsCount = count
-end)
