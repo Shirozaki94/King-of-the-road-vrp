@@ -57,12 +57,9 @@ function startDeliveryMission(source)
     -- Randomly select a drop-off location
     local dropoff = {x = 2023.3757324219, y = 4972.2622070313, z = 41.225715637207}
     TriggerClientEvent('kotr:markDropoff', source, dropoff, remainingTime)
-    TriggerClientEvent('kotr:updateParticipantsCount', -1, #participants)
-    RegisterNetEvent('kotr:updateParticipantsCount')
-
-
 
     table.insert(participants, source)
+    TriggerClientEvent('kotr:updateParticipantsCount', -1, #participants)
 
     -- If 8 players have taken the job, initiate the cooldown
     if #participants == 8 then
@@ -80,7 +77,7 @@ function completeDelivery(source, position, isLate)
     for i, playerId in ipairs(participants) do
         if playerId == source then
             table.remove(participants, i)
-			print("gata treaba sefu")
+            print("gata treaba sefu")
             break
         end
     end
@@ -88,9 +85,8 @@ end
 
 RegisterNetEvent('kotr:startDeliveryJob')
 AddEventHandler('kotr:startDeliveryJob', function()
-    isInDeliveryJob = true
-	startDeliveryMission(source)
-    print("Job started:", isInDeliveryJob)  -- This should print "Job started: true"
+    startDeliveryMission(source)
+    print("Job started for player:", source)
 end)
 
 RegisterNetEvent('kotr:requestDelivery')
