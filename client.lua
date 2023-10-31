@@ -147,6 +147,7 @@ Citizen.CreateThread(function()
         end
 
         if isInDeliveryJob then
+            displayParticipantsCount()
             displayTimer()
         elseif displayAvailableTime then
             displayJobTime(availableTime)
